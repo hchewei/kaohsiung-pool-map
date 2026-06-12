@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaohsiung Pool Rentals · Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --line:#262b35; --txt:#e6e8ec;
+    --muted:#9aa3b2; --accent:#4fd1c5; --gold:#f6c343; --pink:#ff7ab2;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang TC","Noto Sans TC",Helvetica,sans-serif;background:var(--bg);color:var(--txt)}
+  #app{display:flex;height:100%}
+  #sidebar{width:340px;min-width:340px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column}
+  #sidebar header{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+  #sidebar h1{font-size:17px;margin:0 0 4px}
+  #sidebar .sub{font-size:12px;color:var(--muted);line-height:1.6}
+  #legend{padding:10px 18px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);line-height:1.9}
+  #legend .row{display:flex;align-items:center;gap:7px}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block;flex:none}
+  .dot.ok{background:var(--accent)} .dot.mark{background:var(--gold)}
+  .chip{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex:none}
+  .chip.pub{background:#3b82f6}.chip.priv{background:#64748b}.chip.gym{background:#f97316}
+  .chip.yr{border:2px solid #22c55e}
+  #list{overflow-y:auto;flex:1}
+  .item{padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s}
+  .item:hover{background:#1d2129}
+  .item .name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .item .meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .item .price{font-size:13px;color:var(--gold);margin-top:4px;font-weight:600}
+  #map{flex:1}
+  .leaflet-popup-content-wrapper{background:var(--panel);color:var(--txt);border-radius:10px}
+  .leaflet-popup-tip{background:var(--panel)}
+  .leaflet-popup-content{margin:12px 14px;font-size:13px;line-height:1.5;width:250px !important}
+  .pop-name{font-size:15px;font-weight:700;margin-bottom:2px}
+  .pop-area{font-size:12px;color:var(--muted);margin-bottom:8px}
+  .pop-note{font-size:12px;color:var(--accent);margin-bottom:8px}
+  .pop-stat{font-size:12px;margin-bottom:6px}
+  .pop-stat b{color:#22c55e}
+  .pop-li{padding:6px 0;border-top:1px solid var(--line)}
+  .pop-li a{color:var(--pink);text-decoration:none;font-weight:600}
+  .pop-li a:hover{text-decoration:underline}
+  .pop-li .d{color:var(--muted);font-size:12px}
+  .pop-comm{display:inline-block;margin-top:8px;font-size:12px;color:var(--accent);text-decoration:none}
+  .pop-comm:hover{text-decoration:underline}
+  .tag{font-size:10px;padding:1px 6px;border-radius:6px;background:#2a2f3a;color:var(--muted)}
+  .tag.star{background:#3a3320;color:var(--gold)}
+  .poi{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.45);border:2px solid transparent}
+  .poi.pub{background:#3b82f6}.poi.uni{background:#8b5cf6}.poi.sc{background:#0ea5e9}.poi.priv{background:#64748b}.poi.gym{background:#f97316}
+  .poi.yr{border-color:#22c55e}
+  .leaflet-control-layers{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px}
+  .leaflet-control-layers-expanded{padding:8px 10px;font-size:13px}
+  @media(max-width:720px){#app{flex-direction:column}#sidebar{width:100%;min-width:0;height:42%}#map{height:58%}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <header>
+      <h1>Kaohsiung Pool Rentals</h1>
+      <div class="sub">13 rental communities with pools · plus nearby public/private pools & gyms.<br>Toggle layers top-right of the map. Source: 591 + OpenStreetMap (Jun 2026).</div>
+    </header>
+    <div id="legend">
+      <div class="row"><i class="dot ok"></i>Rental · pool confirmed</div>
+      <div class="row"><i class="dot mark"></i>Rental · agent-listed pool</div>
+      <div class="row"><i class="chip pub">🏊</i>Public pool &nbsp; <i class="chip priv">🏊</i>Private/club</div>
+      <div class="row"><i class="chip pub yr">🏊</i>Green ring = open year-round</div>
+      <div class="row"><i class="chip gym">🏋️</i>Gym</div>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div id="map"></div>
+</div>
+<script>
+const communities = [
+  { name:"達麗東京", dist:"Qianjin Dist.", area:"City Council / Kaohsiung Station", lat:22.6300, lng:120.2958, ok:true,
+    note:"Rooftop pool + gym, pool confirmed. Best price.", comm:"5855898",
+    items:[{t:"2BR · 20 ping · 14F",p:"19,500 (+1,500)",id:"21369021"}] },
+  { name:"民生香榭", dist:"Qianjin Dist.", area:"Qianjin MRT / by Central Park", lat:22.6248, lng:120.2972, ok:false,
+    note:"High-rise with pool next to Central Park, great value.", comm:"34331",
+    items:[{t:"2BR · 12.9 ping · 24F",p:"20,500",id:"21417199"},{t:"2BR · 19 ping · 13F",p:"21,500 (+1,600)",id:"20452940"},{t:"2BR · 19.7 ping · 27F",p:"22,000 incl. mgmt",id:"21357261"}] },
+  { name:"民生臻愛", dist:"Xinxing Dist.", area:"42m to Central Park MRT", lat:22.6272, lng:120.3008, ok:false,
+    note:"Brand-new pool building, right across from the MRT exit.", comm:"101866",
+    items:[{t:"2BR · 22.1 ping · 10F",p:"22,000 (+1,600)",id:"21126785"}] },
+  { name:"大悅", dist:"Xinxing Dist.", area:"Cultural Center / Xinyi Elementary", lat:22.6285, lng:120.3052, ok:false,
+    note:"Infinity pool, 29 floors, spacious 2BR units.", comm:"34330",
+    items:[{t:"2BR · 30.4 ping · 2F",p:"24,000 incl. mgmt+cleaning",id:"21351999"}] },
+  { name:"鉑愛悅", dist:"Zuoying Dist.", area:"Zuoying HSR / Ecological Park MRT", lat:22.6862, lng:120.3068, ok:false,
+    note:"Hotel-style pool tower, brand-new 34F. Several units available.", comm:"3677239",
+    items:[{t:"2BR · 24.7 ping · 10F",p:"24,000 (+2,000)",id:"21219426"},{t:"2BR · 15 ping · 31F",p:"25,000 incl. parking",id:"21315728"},{t:"2BR · 14.4 ping · 25F",p:"25,000 incl. parking",id:"21357273"},{t:"2BR · 27.4 ping · 24F",p:"26,000 incl. parking+mgmt",id:"21203712"},{t:"3BR · 42.8 ping · 10F",p:"25,999 incl. parking (~29k total)",id:"21229728"}] },
+  { name:"博愛香榭", dist:"Zuoying Dist.", area:"208m to Hanshin Arena MRT", lat:22.6678, lng:120.3022, ok:false,
+    note:"Rooftop pool, pets OK, rent-subsidy eligible.", comm:"101051",
+    items:[{t:"2BR · 21.5 ping · 18F",p:"25,000",id:"21340324"},{t:"2BR · 12 ping · 18F",p:"25,000",id:"21383567"}] },
+  { name:"i世界", dist:"Zuoying Dist.", area:"Guomao / near Fine Arts Museum", lat:22.6618, lng:120.2885, ok:false,
+    note:"Hotel-style pool building on the Zuoying/Gushan border.", comm:"39011",
+    items:[{t:"2BR · 16.2 ping · 4F",p:"23,000 incl. parking",id:"21397973"}] },
+  { name:"美樹香榭", dist:"Gushan Dist.", area:"666m to Fine Arts Museum district", lat:22.6625, lng:120.2918, ok:false,
+    note:"High-rise pool, subsidy eligible, parking included.", comm:"101517",
+    items:[{t:"2BR · 14 ping · 12F",p:"24,000",id:"21417716"}] },
+  { name:"文化潤隆", dist:"Lingya Dist.", area:"Sanduo shopping area / Wukuaicuo", lat:22.6228, lng:120.3262, ok:false,
+    note:"Luxury pool, large terrace, flat-level parking.", comm:"38807",
+    items:[{t:"2BR · 33.7 ping · 13F",p:"23,800 (+2,222)",id:"21392342"},{t:"2BR · 17.6 ping · 13F",p:"23,800",id:"21416062"}] },
+  { name:"美樹大悅", dist:"Sanmin Dist.", area:"Zhongdu Wetland Park / Shiquan Elem.", lat:22.6452, lng:120.3082, ok:false,
+    note:"Boutique residence with a shared pool.", comm:"5874773",
+    items:[{t:"2BR · 24.7 ping · 5F",p:"24,000 incl. mgmt",id:"21370223"}] },
+  { name:"微美居-鉑金特區", dist:"Nanzi Dist.", area:"NUK district / TSMC area", lat:22.7332, lng:120.2772, ok:false,
+    note:"Brand-new, shared pool, parking included, pets OK.", comm:"104703",
+    items:[{t:"2BR · 24.4 ping · 7F",p:"20,000 incl. parking (+1,700)",id:"21384889"}] },
+  { name:"橋科水岸花園", dist:"Qiaotou Dist.", area:"Forest Park / 517m to Qingpu Station", lat:22.7598, lng:120.3082, ok:false, star:true,
+    note:"Only large 3BR. Pool, 3BR with flat parking, huge floor area.", comm:"100524",
+    items:[{t:"3BR · 58.7 ping · 22F",p:"25,000 (+2,250)",id:"21304807"}] },
+  { name:"全民萬歲", dist:"Qiaotou Dist.", area:"Kaohsiung New Town / 166m to Qingpu Stn.", lat:22.7565, lng:120.3048, ok:false,
+    note:"Pool, 24h concierge building, 5-yr-old elevator block.", comm:"34495",
+    items:[{t:"2BR · 30 ping · 12F",p:"19,999 (+1,501)",id:"21241377"}] },
+];
+
+// kind: pub(public city/district) / sc(public sports-centre indoor) / uni(university) / priv(private/club/hotel)
+// yr: 'yes' year-round / 'seasonal' summer only / 'unk' hours vary
+const pools = [
+  {name:"三民游泳池", kind:"pub", yr:"yes", lat:22.64257, lng:120.30908, en:"Public pool — only one open for winter night swim"},
+  {name:"前鎮游泳池", kind:"pub", yr:"yes", lat:22.60602, lng:120.30916, en:"Public pool · morning/afternoon/evening sessions"},
+  {name:"市立鼓山游泳池", kind:"pub", yr:"yes", lat:22.65698, lng:120.27717, en:"City public pool"},
+  {name:"高雄市右昌游泳池", kind:"pub", yr:"yes", lat:22.71504, lng:120.29117, en:"City public pool (Nanzi)"},
+  {name:"大寮區游泳池", kind:"pub", yr:"yes", lat:22.60054, lng:120.39213, en:"District public pool"},
+  {name:"北區游泳池", kind:"pub", yr:"unk", lat:22.7895, lng:120.26856, en:"District public pool (Gangshan area)"},
+  {name:"南區游泳池", kind:"pub", yr:"unk", lat:22.78301, lng:120.26942, en:"District public pool (Gangshan area)"},
+  {name:"三民家商體育館（含泳池）", kind:"pub", yr:"unk", lat:22.66683, lng:120.30055, en:"School gym + pool"},
+  {name:"岡山國民運動中心", kind:"sc", yr:"yes", lat:22.78408, lng:120.2991, en:"National Sports Center — indoor heated pool"},
+  {name:"高雄市苓雅運動中心", kind:"sc", yr:"yes", lat:22.62783, lng:120.33489, en:"Sports Center — indoor heated pool"},
+  {name:"高雄市鹽埕運動中心", kind:"sc", yr:"yes", lat:22.62282, lng:120.28871, en:"Sports Center — indoor heated pool"},
+  {name:"國立中山大學游泳池", kind:"uni", yr:"unk", lat:22.62253, lng:120.26383, en:"University pool"},
+  {name:"國立高雄大學游泳池", kind:"uni", yr:"unk", lat:22.73443, lng:120.27824, en:"University pool"},
+  {name:"樹德科技大學大社游泳池", kind:"uni", yr:"seasonal", lat:22.72958, lng:120.35289, en:"University pool — closed Dec–Feb"},
+  {name:"圓山飯店游泳池", kind:"priv", yr:"unk", lat:22.65325, lng:120.34854, en:"Hotel pool (Grand Hotel, guests)"},
+  {name:"大地游泳潛水俱樂部", kind:"priv", yr:"unk", lat:22.66497, lng:120.31545, en:"Swim & dive club"},
+  {name:"長青村水療養生游泳健康中心", kind:"priv", yr:"unk", lat:22.66687, lng:120.31741, en:"Private SPA / health pool"},
+  {name:"宏南游泳池", kind:"priv", yr:"unk", lat:22.70383, lng:120.29914, en:"CPC staff-village community pool"},
+  {name:"台船游泳池", kind:"priv", yr:"unk", lat:22.55064, lng:120.34785, en:"CSBC company pool"},
+];
+
+const gyms = [
+  {name:"World Gym", lat:22.60534, lng:120.30979, en:"24h-style chain (06:00–24:00)"},
+  {name:"World Gym 健身俱樂部", lat:22.63057, lng:120.2951, en:"Chain gym"},
+  {name:"World Gym 健身俱樂部", lat:22.6636, lng:120.30345, en:"Chain gym"},
+  {name:"World Gym 健身俱樂部", lat:22.72974, lng:120.33158, en:"Chain gym · 06:00–24:00"},
+  {name:"World Gym 健身俱樂部", lat:22.79216, lng:120.29666, en:"Chain gym · 06:00–24:00"},
+  {name:"健身工廠 Fitness Factory", lat:22.64151, lng:120.34597, en:"Chain gym"},
+  {name:"健身工廠 Fitness Factory", lat:22.67326, lng:120.30497, en:"Chain gym"},
+  {name:"健身工廠 Fitness Factory", lat:22.62157, lng:120.3487, en:"Chain gym · 06:00–24:00"},
+  {name:"健身工廠 Fitness Factory", lat:22.61366, lng:120.30692, en:"Chain gym"},
+  {name:"健身工廠 Fitness Factory", lat:22.64053, lng:120.31481, en:"Chain gym"},
+  {name:"健身工廠 Fitness Factory", lat:22.78111, lng:120.29954, en:"Chain gym"},
+  {name:"健身工廠 Fitness Factory", lat:22.79617, lng:120.29592, en:"Chain gym"},
+  {name:"Change Club 健身會館", lat:22.72078, lng:120.29143, en:"Gym"},
+  {name:"橘子體適能", lat:22.61772, lng:120.30632, en:"Fitness studio"},
+  {name:"第二體適能中心", lat:22.62298, lng:120.2643, en:"Fitness center"},
+  {name:"熊熊來運動", lat:22.6682, lng:120.29529, en:"Gym"},
+  {name:"中鋼健身館", lat:22.60454, lng:120.30231, en:"Company gym (China Steel staff)"},
+];
+
+const map = L.map('map').setView([22.66, 120.31], 12);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:20
+}).addTo(map);
+
+const PING=3.30579;
+function pingToM2(t){ return t.replace(/([\d.]+) ping/, (m,p)=>`${p} ping (~${Math.round(p*PING)} m²)`); }
+
+// --- Rental communities layer ---
+const rentLayer = L.layerGroup();
+const markers = {};
+communities.forEach((c,idx)=>{
+  const lis = c.items.map(i =>
+    `<div class="pop-li"><a href="https://rent.591.com.tw/${i.id}" target="_blank">${pingToM2(i.t)}</a><div class="d">Rent NT$${i.p}/mo</div></div>`
+  ).join('');
+  const html = `<div class="pop-name">${c.name}${c.star?' <span class="tag star">Large 3BR</span>':''}</div>`+
+    `<div class="pop-area">${c.dist} · ${c.area}</div>`+
+    `<div class="pop-note">${c.note}</div>`+ lis +
+    `<a class="pop-comm" href="https://market.591.com.tw/${c.comm}" target="_blank">→ View community page (591)</a>`;
+  const m = L.circleMarker([c.lat,c.lng],{radius:9,fillColor:c.ok?'#4fd1c5':'#f6c343',color:'#fff',weight:2,fillOpacity:.95})
+    .bindPopup(html,{maxWidth:300});
+  m.addTo(rentLayer); markers[idx]=m;
+});
+rentLayer.addTo(map);
+
+// --- Pools layer ---
+const kindLabel={pub:"Public pool",sc:"Public sports center (indoor pool)",uni:"University pool",priv:"Private / club pool"};
+const yrLabel={yes:"<b>Open year-round</b> (reduced winter hours)",seasonal:"Summer season only",unk:"Hours vary — check facility"};
+const poolLayer = L.layerGroup();
+pools.forEach(p=>{
+  const cls = p.kind==="uni"?"uni":p.kind==="sc"?"sc":p.kind==="priv"?"priv":"pub";
+  const icon = L.divIcon({className:'',iconSize:[26,26],iconAnchor:[13,13],
+    html:`<div class="poi ${cls} ${p.yr==='yes'?'yr':''}">🏊</div>`});
+  const html = `<div class="pop-name">${p.name}</div>`+
+    `<div class="pop-area">${kindLabel[p.kind]}</div>`+
+    `<div class="pop-stat">${yrLabel[p.yr]}</div>`+
+    `<div class="pop-note">${p.en}</div>`;
+  L.marker([p.lat,p.lng],{icon}).bindPopup(html,{maxWidth:260}).addTo(poolLayer);
+});
+poolLayer.addTo(map);
+
+// --- Gyms layer ---
+const gymLayer = L.layerGroup();
+gyms.forEach(g=>{
+  const icon = L.divIcon({className:'',iconSize:[26,26],iconAnchor:[13,13],html:`<div class="poi gym">🏋️</div>`});
+  const html = `<div class="pop-name">${g.name}</div><div class="pop-area">Gym / fitness</div><div class="pop-note">${g.en}</div>`;
+  L.marker([g.lat,g.lng],{icon}).bindPopup(html,{maxWidth:240}).addTo(gymLayer);
+});
+gymLayer.addTo(map);
+
+const overlays = {};
+overlays["🏠 Rental communities (" + communities.length + ")"] = rentLayer;
+overlays["🏊 Swimming pools (" + pools.length + ")"] = poolLayer;
+overlays["🏋️ Gyms (" + gyms.length + ")"] = gymLayer;
+L.control.layers(null, overlays, {collapsed:false}).addTo(map);
+
+// --- sidebar list (rentals only) ---
+const list = document.getElementById('list');
+communities.forEach((c,idx)=>{
+  const prices = c.items.map(i=>parseInt(i.p.split(/[（(]/)[0].replace(/[^0-9]/g,''))).filter(Boolean);
+  const lo=Math.min(...prices), hi=Math.max(...prices);
+  const range = lo===hi ? lo.toLocaleString() : `${lo.toLocaleString()}–${hi.toLocaleString()}`;
+  const el = document.createElement('div');
+  el.className='item';
+  el.innerHTML = `<div class="name"><i class="dot ${c.ok?'ok':'mark'}"></i>${c.name}${c.star?' <span class="tag star">Large 3BR</span>':''}</div>`+
+    `<div class="meta">${c.dist} · ${c.area} · ${c.items.length} listing${c.items.length>1?'s':''}</div>`+
+    `<div class="price">NT$${range}/mo</div>`;
+  el.onclick=()=>{ map.setView([c.lat,c.lng],15,{animate:true}); markers[idx].openPopup(); };
+  list.appendChild(el);
+});
+</script>
+</body>
+</html>

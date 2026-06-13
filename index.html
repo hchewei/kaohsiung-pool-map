@@ -124,11 +124,21 @@
 <script>
 const communities = [
   { name:"達麗東京", dist:"Qianjin Dist.", area:"City Council / Kaohsiung Station", lat:22.6300, lng:120.2958, ok:true,
-    note:"Rooftop pool + gym, pool confirmed. Best price.", comm:"5855898",
-    items:[{t:"2BR · 20 ping · 14F",p:"19,500 (+1,500)",id:"21369021"}] },
-  { name:"民生香榭", dist:"Qianjin Dist.", area:"Qianjin MRT / by Central Park", lat:22.6248, lng:120.2972, ok:false,
-    note:"High-rise with pool next to Central Park, great value.", comm:"34331",
-    items:[{t:"2BR · 12.9 ping · 24F",p:"20,500",id:"21417199"},{t:"2BR · 19 ping · 13F",p:"21,500 (+1,600)",id:"20452940"},{t:"2BR · 19.7 ping · 27F",p:"22,000 incl. mgmt",id:"21357261"}] },
+    note:"Rooftop pool + gym, pool confirmed. 24 units on market.", comm:"5855898",
+    items:[
+      {t:"2BR · 20 ping · 14F",p:"19,500 (+1,500)",id:"21369021"},
+      {t:"2BR · 23 ping · 20F",p:"25,000 incl. parking+mgmt",id:"21436802"},
+      {t:"2BR · 13.2 ping · 17F",p:"26,000 incl. mgmt",id:"21447346"},
+      {t:"3BR · 19.4 ping · 21F",p:"32,000 incl. parking",id:"21385446"}
+    ] },
+  { name:"民生香榭", dist:"Qianjin Dist.", area:"Qianjin MRT / by Central Park", lat:22.6248, lng:120.2972, ok:true,
+    note:"Infinity pool + KTV + gym confirmed. 16 units. Central Park views.", comm:"34331",
+    items:[
+      {t:"2BR · 12.9 ping · 24F",p:"20,500",id:"21417199"},
+      {t:"2BR · 19 ping · 13F",p:"21,500 (+1,600)",id:"20452940"},
+      {t:"2BR · 19.7 ping · 27F",p:"22,000 incl. mgmt",id:"21357261"},
+      {t:"2BR · 12 ping · 20F",p:"22,000 (+1,518 mgmt)",id:"21434786"}
+    ] },
   { name:"民生臻愛", dist:"Xinxing Dist.", area:"42m to Central Park MRT", lat:22.6272, lng:120.3008, ok:false,
     note:"Brand-new pool building, right across from the MRT exit.", comm:"101866",
     items:[{t:"2BR · 22.1 ping · 10F",p:"22,000 (+1,600)",id:"21126785"}] },
@@ -276,7 +286,7 @@ L.control.layers(null, overlays, {collapsed:isMobile}).addTo(map);
 const panel = document.getElementById('panel');
 const panelBar = document.getElementById('panel-bar');
 document.getElementById('bar-count').textContent =
-  communities.length + " rental communities · NT$19,500–26,000/mo";
+  communities.length + " rental communities · NT$19,500–32,000/mo";
 if (!isMobile) document.getElementById('legend-fold').open = true;
 if (isMobile){
   panelBar.addEventListener('click', ()=> panel.classList.toggle('open'));

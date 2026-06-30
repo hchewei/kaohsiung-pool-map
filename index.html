@@ -113,8 +113,9 @@
           <div class="row"><i class="dot mark"></i>Rental · agent-listed pool</div>
           <div class="row"><i class="chip pub">🏊</i>Public pool &nbsp; <i class="chip priv">🏊</i>Private/club</div>
           <div class="row"><i class="chip pub yr">🏊</i>Green ring = open year-round</div>
+          <div class="row"><i class="chip sc yr">🏊</i>Sports Center (室內泳池)</div>
           <div class="row"><i class="chip gym">🏋️</i>Gym</div>
-          <div style="margin-top:8px">Toggle layers via the map control. Source: 591 + arei.tw + OpenStreetMap (Jun 2026).</div>
+          <div style="margin-top:8px">Toggle layers via the map control. Source: 591 + arei.tw + sports.kcg.gov.tw + OpenStreetMap (Jun 2026).</div>
         </div>
       </details>
       <div id="list"></div>
@@ -127,20 +128,13 @@ const communities = [
     note:"Rooftop pool + gym, pool confirmed.", comm:"5855898",
     items:[
       {t:"2BR · 20 ping · 14F",p:"19,500 (+1,500)",id:"21369021"},
-      {t:"2BR · 20.7 ping · 10F",p:"22,000 (+1,754 mgmt)",id:"21377751"},
-      {t:"2BR · 23 ping · 20F",p:"25,000 incl. parking+mgmt",id:"21436802"},
-      {t:"2BR · 13.2 ping · 17F",p:"26,000 incl. mgmt",id:"21447346"},
-      {t:"3BR · 19.4 ping · 21F",p:"32,000 incl. parking",id:"21385446"}
+      {t:"2BR · 20.7 ping · 10F",p:"22,000 (+1,754 mgmt)",id:"21377751"}
     ] },
   { name:"民生香榭", dist:"Qianjin Dist.", area:"Qianjin MRT / by Central Park", lat:22.6248, lng:120.2972, ok:true,
     note:"Infinity pool + KTV + gym confirmed. Central Park views.", comm:"34331",
     items:[
       {t:"2BR · 12.9 ping · 24F",p:"20,500",id:"21417199"},
-      {t:"2BR · 19 ping · 13F",p:"21,500 (+1,600)",id:"20452940"},
-      {t:"2BR · 19.7 ping · 27F",p:"22,000 incl. mgmt",id:"21357261"},
-      {t:"2BR · 12 ping · 20F",p:"22,000 (+1,518 mgmt)",id:"21434786"},
-      {t:"2BR · 27.1 ping · 5F",p:"23,000 (+2,171 mgmt)",url:"https://www.arei.tw/rent_info.asp?id=22000"},
-      {t:"2BR · 24 ping · 19F",p:"23,000 incl. mgmt",id:"21455670"}
+      {t:"2BR · 27.1 ping · 5F",p:"23,000 (+2,171 mgmt)",url:"https://www.arei.tw/rent_info.asp?id=22000"}
     ] },
   { name:"民生臻愛", dist:"Xinxing Dist.", area:"42m to Central Park MRT", lat:22.6272, lng:120.3008, ok:false,
     note:"Brand-new pool building, right across from the MRT exit.", comm:"101866",
@@ -199,9 +193,7 @@ const pools = [
   {name:"北區游泳池", kind:"pub", yr:"unk", lat:22.7895, lng:120.26856, en:"District public pool (Gangshan area)"},
   {name:"南區游泳池", kind:"pub", yr:"unk", lat:22.78301, lng:120.26942, en:"District public pool (Gangshan area)"},
   {name:"三民家商體育館（含泳池）", kind:"pub", yr:"unk", lat:22.66683, lng:120.30055, en:"School gym + pool"},
-  {name:"岡山國民運動中心", kind:"sc", yr:"yes", lat:22.78408, lng:120.2991, en:"National Sports Center — indoor heated pool"},
-  {name:"高雄市苓雅運動中心", kind:"sc", yr:"yes", lat:22.62783, lng:120.33489, en:"Sports Center — indoor heated pool"},
-  {name:"高雄市鹽埕運動中心", kind:"sc", yr:"yes", lat:22.62282, lng:120.28871, en:"Sports Center — indoor heated pool"},
+
   {name:"國立中山大學游泳池", kind:"uni", yr:"unk", lat:22.62253, lng:120.26383, en:"University pool"},
   {name:"國立高雄大學游泳池", kind:"uni", yr:"unk", lat:22.73443, lng:120.27824, en:"University pool"},
   {name:"樹德科技大學大社游泳池", kind:"uni", yr:"seasonal", lat:22.72958, lng:120.35289, en:"University pool — closed Dec–Feb"},
@@ -232,6 +224,15 @@ const gyms = [
   {name:"中鋼健身館", lat:22.60454, lng:120.30231, en:"Company gym (China Steel staff)"},
 ];
 
+const sportscenters = [
+  {name:"高雄市前金運動中心", lat:22.636, lng:120.293, addr:"前金區大同二路61號", tel:"07-281-8566"},
+  {name:"高雄市鹽埕運動中心", lat:22.62282, lng:120.28871, addr:"鹽埕區新樂街46號", tel:"07-521-5520"},
+  {name:"高雄市苓雅運動中心", lat:22.62783, lng:120.33489, addr:"苓雅區中正一路96號", tel:"07-722-1177"},
+  {name:"高雄市左營運動中心", lat:22.684, lng:120.298, addr:"左營區世運大道100號", tel:"07-585-6855"},
+  {name:"高雄市楠仔坑運動中心", lat:22.742, lng:120.322, addr:"楠梓區旗楠路168號", tel:"07-353-6888"},
+  {name:"高雄市岡山運動中心", lat:22.78408, lng:120.2991, addr:"岡山區中山南路169號", tel:"07-625-0666"},
+  {name:"高雄市美濃運動中心", lat:22.897, lng:120.551, addr:"美濃區中正路一段191號", tel:"07-681-0661"},
+];
 const isMobile = window.matchMedia('(max-width:720px)').matches;
 
 const map = L.map('map', {zoomControl:!isMobile}).setView([22.66, 120.31], isMobile ? 11 : 12);
@@ -273,7 +274,7 @@ pools.forEach(p=>{
     `<div class="pop-note">${p.en}</div>`;
   L.marker([p.lat,p.lng],{icon}).bindPopup(html,{maxWidth:260}).addTo(poolLayer);
 });
-poolLayer.addTo(map);
+// poolLayer NOT added to map (hidden by default)
 
 // --- Gyms layer ---
 const gymLayer = L.layerGroup();
@@ -282,11 +283,25 @@ gyms.forEach(g=>{
   const html = `<div class="pop-name">${g.name}</div><div class="pop-area">Gym / fitness</div><div class="pop-note">${g.en}</div>`;
   L.marker([g.lat,g.lng],{icon}).bindPopup(html,{maxWidth:240}).addTo(gymLayer);
 });
-gymLayer.addTo(map);
+// gymLayer NOT added to map (hidden by default)
+
+// --- Sports Centers layer ---
+const scLayer = L.layerGroup();
+sportscenters.forEach(s=>{
+  const icon = L.divIcon({className:'',iconSize:[28,28],iconAnchor:[14,14],
+    html:`<div class="poi sc yr">🏊</div>`});
+  const html = `<div class="pop-name">${s.name}</div>`+
+    `<div class="pop-area">高雄市立運動中心（室內泳池）</div>`+
+    `<div class="pop-stat">${s.addr}</div>`+
+    `<div class="pop-note">☎ ${s.tel}</div>`;
+  L.marker([s.lat,s.lng],{icon}).bindPopup(html,{maxWidth:260}).addTo(scLayer);
+});
+scLayer.addTo(map);
 
 const overlays = {};
 overlays["🏠 Rentals (" + communities.length + ")"] = rentLayer;
-overlays["🏊 Pools (" + pools.length + ")"] = poolLayer;
+overlays["🏊 Sports Centers (" + sportscenters.length + ")"] = scLayer;
+overlays["💧 Public / Club Pools (" + pools.length + ")"] = poolLayer;
 overlays["🏋️ Gyms (" + gyms.length + ")"] = gymLayer;
 L.control.layers(null, overlays, {collapsed:isMobile}).addTo(map);
 

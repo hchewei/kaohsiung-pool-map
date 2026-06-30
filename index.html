@@ -114,7 +114,7 @@
           <div class="row"><i class="chip pub">🏊</i>Public pool &nbsp; <i class="chip priv">🏊</i>Private/club</div>
           <div class="row"><i class="chip pub yr">🏊</i>Green ring = open year-round</div>
           <div class="row"><i class="chip gym">🏋️</i>Gym</div>
-          <div style="margin-top:8px">Toggle layers via the map control. Source: 591 + OpenStreetMap (Jun 2026).</div>
+          <div style="margin-top:8px">Toggle layers via the map control. Source: 591 + arei.tw + OpenStreetMap (Jun 2026).</div>
         </div>
       </details>
       <div id="list"></div>
@@ -124,20 +124,23 @@
 <script>
 const communities = [
   { name:"達麗東京", dist:"Qianjin Dist.", area:"City Council / Kaohsiung Station", lat:22.6300, lng:120.2958, ok:true,
-    note:"Rooftop pool + gym, pool confirmed. 24 units on market.", comm:"5855898",
+    note:"Rooftop pool + gym, pool confirmed.", comm:"5855898",
     items:[
       {t:"2BR · 20 ping · 14F",p:"19,500 (+1,500)",id:"21369021"},
+      {t:"2BR · 20.7 ping · 10F",p:"22,000 (+1,754 mgmt)",id:"21377751"},
       {t:"2BR · 23 ping · 20F",p:"25,000 incl. parking+mgmt",id:"21436802"},
       {t:"2BR · 13.2 ping · 17F",p:"26,000 incl. mgmt",id:"21447346"},
       {t:"3BR · 19.4 ping · 21F",p:"32,000 incl. parking",id:"21385446"}
     ] },
   { name:"民生香榭", dist:"Qianjin Dist.", area:"Qianjin MRT / by Central Park", lat:22.6248, lng:120.2972, ok:true,
-    note:"Infinity pool + KTV + gym confirmed. 16 units. Central Park views.", comm:"34331",
+    note:"Infinity pool + KTV + gym confirmed. Central Park views.", comm:"34331",
     items:[
       {t:"2BR · 12.9 ping · 24F",p:"20,500",id:"21417199"},
       {t:"2BR · 19 ping · 13F",p:"21,500 (+1,600)",id:"20452940"},
       {t:"2BR · 19.7 ping · 27F",p:"22,000 incl. mgmt",id:"21357261"},
-      {t:"2BR · 12 ping · 20F",p:"22,000 (+1,518 mgmt)",id:"21434786"}
+      {t:"2BR · 12 ping · 20F",p:"22,000 (+1,518 mgmt)",id:"21434786"},
+      {t:"2BR · 27.1 ping · 5F",p:"23,000 (+2,171 mgmt)",url:"https://www.arei.tw/rent_info.asp?id=22000"},
+      {t:"2BR · 24 ping · 19F",p:"23,000 incl. mgmt",id:"21455670"}
     ] },
   { name:"民生臻愛", dist:"Xinxing Dist.", area:"42m to Central Park MRT", lat:22.6272, lng:120.3008, ok:false,
     note:"Brand-new pool building, right across from the MRT exit.", comm:"101866",
@@ -178,6 +181,11 @@ const communities = [
   { name:"興富發博愛", dist:"Sanmin Dist.", area:"R12 Boai MRT / Kaohsiung Station", lat:22.6480, lng:120.2965, ok:false,
     note:"Pool, high-rise 35F, near two MRT lines, rent-subsidy eligible.", comm:"101676",
     items:[{t:"2BR · 25.7 ping · 12F",p:"25,000",id:"21431499"}] },
+  { name:"繽海", dist:"Lingya Dist.", area:"Sanduo MRT / Sanduo 4th Rd.", lat:22.612, lng:120.324, ok:true,
+    note:"Pool + gym + KTV + Lounge Bar + sky garden confirmed. 15F building. Pets OK, rent-subsidy eligible.", comm:"",
+    items:[
+      {t:"3BR · 34 ping · 6F",p:"26,000 (+2,000 mgmt)",url:"https://www.arei.tw/rent_info.asp?id=30367"}
+    ] },
 ];
 
 // kind: pub(public city/district) / sc(public sports-centre indoor) / uni(university) / priv(private/club/hotel)
@@ -239,12 +247,12 @@ const rentLayer = L.layerGroup();
 const markers = {};
 communities.forEach((c,idx)=>{
   const lis = c.items.map(i =>
-    `<div class="pop-li"><a href="https://rent.591.com.tw/${i.id}" target="_blank">${pingToM2(i.t)}</a><div class="d">Rent NT$${i.p}/mo</div></div>`
+    `<div class="pop-li"><a href="${i.url||'https://rent.591.com.tw/'+i.id}" target="_blank">${pingToM2(i.t)}</a><div class="d">Rent NT$${i.p}/mo</div></div>`
   ).join('');
+  const commLink = c.comm ? `<a class="pop-comm" href="https://market.591.com.tw/${c.comm}" target="_blank">→ View community page (591)</a>` : '';
   const html = `<div class="pop-name">${c.name}${c.star?' <span class="tag star">Large 3BR</span>':''}</div>`+
     `<div class="pop-area">${c.dist} · ${c.area}</div>`+
-    `<div class="pop-note">${c.note}</div>`+ lis +
-    `<a class="pop-comm" href="https://market.591.com.tw/${c.comm}" target="_blank">→ View community page (591)</a>`;
+    `<div class="pop-note">${c.note}</div>`+ lis + commLink;
   const m = L.circleMarker([c.lat,c.lng],{radius:9,fillColor:c.ok?'#4fd1c5':'#f6c343',color:'#fff',weight:2,fillOpacity:.95})
     .bindPopup(html,{maxWidth:300});
   m.addTo(rentLayer); markers[idx]=m;

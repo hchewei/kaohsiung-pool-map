@@ -175,7 +175,7 @@ const communities = [
   { name:"興富發博愛", dist:"Sanmin Dist.", area:"R12 Boai MRT / Kaohsiung Station", lat:22.6480, lng:120.2965, ok:false,
     note:"Pool, high-rise 35F, near two MRT lines, rent-subsidy eligible.", comm:"101676",
     items:[{t:"2BR · 25.7 ping · 12F",p:"25,000",id:"21431499"}] },
-  { name:"繽海", dist:"Lingya Dist.", area:"Sanduo MRT / Sanduo 4th Rd.", lat:22.612, lng:120.324, ok:true,
+  { name:"繽海", dist:"Lingya Dist.", area:"Sanduo MRT / Sanduo 4th Rd.", lat:22.612631243320745, lng:120.29957215680851, ok:true,
     note:"Pool + gym + KTV + Lounge Bar + sky garden confirmed. 15F building. Pets OK, rent-subsidy eligible.", comm:"",
     items:[
       {t:"3BR · 34 ping · 6F",p:"26,000 (+2,000 mgmt)",url:"https://www.arei.tw/rent_info.asp?id=30367"}
@@ -225,13 +225,13 @@ const gyms = [
 ];
 
 const sportscenters = [
-  {name:"高雄市前金運動中心", lat:22.636, lng:120.293, addr:"前金區大同二路61號", tel:"07-281-8566"},
-  {name:"高雄市鹽埕運動中心", lat:22.62282, lng:120.28871, addr:"鹽埕區新樂街46號", tel:"07-521-5520"},
-  {name:"高雄市苓雅運動中心", lat:22.62783, lng:120.33489, addr:"苓雅區中正一路96號", tel:"07-722-1177"},
-  {name:"高雄市左營運動中心", lat:22.684, lng:120.298, addr:"左營區世運大道100號", tel:"07-585-6855"},
-  {name:"高雄市楠仔坑運動中心", lat:22.742, lng:120.322, addr:"楠梓區旗楠路168號", tel:"07-353-6888"},
-  {name:"高雄市岡山運動中心", lat:22.78408, lng:120.2991, addr:"岡山區中山南路169號", tel:"07-625-0666"},
-  {name:"高雄市美濃運動中心", lat:22.897, lng:120.551, addr:"美濃區中正路一段191號", tel:"07-681-0661"},
+  {name:"高雄市前金運動中心", en:"Cianjin Sports Center",    lat:22.636,            lng:120.293,            addr:"No. 61, Datong 2nd Rd, Cianjin Dist.",          tel:"07-281-8566"},
+  {name:"高雄市鹽埕運動中心", en:"Yancheng Sports Center",   lat:22.62282,          lng:120.28871,          addr:"No. 46, Xinle St, Yancheng Dist.",               tel:"07-521-5520"},
+  {name:"高雄市苓雅運動中心", en:"Lingya Sports Center",     lat:22.62783,          lng:120.33489,          addr:"No. 96, Zhongzheng 1st Rd, Lingya Dist.",        tel:"07-722-1177"},
+  {name:"高雄市左營運動中心", en:"Zuoying Sports Center",    lat:22.684,            lng:120.298,            addr:"No. 100, Shiyun Ave, Zuoying Dist.",             tel:"07-585-6855"},
+  {name:"高雄市楠仔坑運動中心", en:"Nanzaikeng Sports Center", lat:22.742,           lng:120.322,            addr:"No. 168, Qinan Rd, Nanzi Dist.",                tel:"07-353-6888"},
+  {name:"高雄市岡山運動中心", en:"Gangshan Sports Center",   lat:22.78408,          lng:120.2991,           addr:"No. 169, Zhongshan S. Rd, Gangshan Dist.",       tel:"07-625-0666"},
+  {name:"高雄市美濃運動中心", en:"Meinong Sports Center",    lat:22.897,            lng:120.551,            addr:"No. 191, Zhongzheng Rd Sec. 1, Meinong Dist.",   tel:"07-681-0661"},
 ];
 const isMobile = window.matchMedia('(max-width:720px)').matches;
 
@@ -290,13 +290,13 @@ const scLayer = L.layerGroup();
 sportscenters.forEach(s=>{
   const icon = L.divIcon({className:'',iconSize:[28,28],iconAnchor:[14,14],
     html:`<div class="poi sc yr">🏊</div>`});
-  const html = `<div class="pop-name">${s.name}</div>`+
-    `<div class="pop-area">高雄市立運動中心（室內泳池）</div>`+
+  const html = `<div class="pop-name">${s.en}</div>`+
+    `<div class="pop-area">Kaohsiung Municipal Sports Center · Indoor Pool</div>`+
     `<div class="pop-stat">${s.addr}</div>`+
     `<div class="pop-note">☎ ${s.tel}</div>`;
   L.marker([s.lat,s.lng],{icon}).bindPopup(html,{maxWidth:260}).addTo(scLayer);
 });
-scLayer.addTo(map);
+// scLayer NOT added to map (hidden by default)
 
 const overlays = {};
 overlays["🏠 Rentals (" + communities.length + ")"] = rentLayer;
